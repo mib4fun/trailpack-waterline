@@ -72,6 +72,32 @@ module.exports = class FootprintService extends Service {
   }
 
   /**
+   * Count all models that satisfy the given criteria. If a primary key is given,
+   * the return value will be a single Object instead of an Array.
+   *
+   * @param modelName The name of the model
+   * @param criteria The criteria that filter the model resultset
+   * @return Promise
+   */
+  count (modelName, criteria, options) {
+    const Model = this.app.orm[modelName] || this.app.packs.waterline.orm.collections[modelName]
+    let query
+
+    if (!options) {
+      options = { }
+    }
+    if (!_.isPlainObject(criteria)) {
+      query = Model.count(criteria)
+    }
+    else {
+      query = Model.count(criteria, options)
+    }
+
+    return query
+  }
+
+
+  /**
    * Update an existing model, or models, matched by the given by criteria, with
    * the given values. If the criteria given is the primary key, then return
    * exactly the object that is updated; otherwise, return an array of objects.
@@ -186,6 +212,33 @@ module.exports = class FootprintService extends Service {
     return this.find(parentModelName, parentId, mergedOptions)
       .then(parentRecord => parentRecord[childAttributeName])
   }
+
+  /**
+   * Count all models that satisfy the given criteria, and which is associated
+   * with the given Parent Model.
+   *
+   * @param parentModelName The name of the model's parent
+   * @param childAttributeName The name of the model to create
+   * @param parentId The id (required) of the parent model
+   * @param criteria The search criteria
+   * @return Promise
+   */
+  countAssociation (parentModelName, parentId, childAttributeName, criteria, options) {
+    const parentModel = this.app.orm[parentModelName] ||
+        this.app.packs.waterline.orm.collections[parentModelName]
+    const childAttribute = parentModel.attributes[childAttributeName]
+    const childModelName = childAttribute.model || childAttribute.collection
+
+    if (!criteria) {
+      criteria = { }
+    }
+
+    criteria[parentModelName] = parentId
+
+    return this.count(childModelName, criteria, options)
+
+  }
+
 
   /**
    * Update models by criteria, and which is associated with the given

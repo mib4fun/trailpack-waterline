@@ -42,6 +42,30 @@ describe('api.services.FootprintService', () => {
         })
     })
   })
+  describe('#count', () => {
+    it('should find a single record', () => {
+      return FootprintService.create('Role', { name: 'counttest' })
+        .then(role => {
+          assert.equal(role.name, 'counttest')
+          assert(role.id)
+          return FootprintService.count('Role')
+        })
+        .then(length => {
+          assert(length, 1)
+        })
+    })
+    it('should count a set of records', () => {
+      return FootprintService.create('Role', { name: 'counttest' })
+        .then(role => {
+          assert.equal(role.name, 'counttest')
+          assert(role.id)
+          return FootprintService.count('Role')
+        })
+        .then(length => {
+          assert(length, 2)
+        })
+    })
+  })
   describe('#update', () => {
     it('should update a set of records', () => {
       return FootprintService.create('Role', { name: 'updatetest' })
@@ -172,6 +196,29 @@ describe('api.services.FootprintService', () => {
           assert(roles)
           assert(roles[0])
           assert.equal(roles[0].user.name, 'findassociationtest')
+        })
+
+    })
+  })
+  describe('#countAssociation', () => {
+    it('should find two associated record', () => {
+      let userId
+      return FootprintService.create('User', { name: 'countassociationtest' })
+        .then(user => {
+          assert(user)
+          assert(user.id)
+          userId = user.id
+          return FootprintService.createAssociation('User', user.id, 'roles', {
+            name: 'countassociatedrole'
+          })
+        })
+        .then(role => {
+          assert(role)
+          assert(role.id)
+          return FootprintService.countAssociation('User', userId, 'roles', { })
+        })
+        .then(length => {
+          assert(length, 1)
         })
 
     })
